@@ -1,0 +1,61 @@
+// Copyright (c) 2023-2025 AccelByte Inc. All Rights Reserved.
+// This is licensed software from AccelByte Inc, for limitations
+// and restrictions contact your company contract manager.
+
+package bootstrap
+
+import (
+	"log/slog"
+	"time"
+
+	"extend-event-handler-with-mongodb-go/pkg/config"
+	"extend-event-handler-with-mongodb-go/pkg/events"
+	"extend-event-handler-with-mongodb-go/pkg/processor"
+)
+
+// Processors holds processors for each event type
+type Processors struct {
+	StatItemUpdated     *processor.Processor[*events.StatItemUpdatedEvent]
+	OauthTokenGenerated *processor.Processor[*events.OauthTokenGeneratedEvent]
+}
+
+// InitializeProcessors creates and starts processors for each event type
+func InitializeProcessors(
+	appCfg *config.Config,
+	plugins *StoragePlugins,
+	dedups *Deduplicators,
+	logger *slog.Logger,
+) *Processors {
+	processorCfg := processor.Config{
+		Workers:       appCfg.Processor.Workers,
+		ChannelBuffer: appCfg.Processor.ChannelBuffer,
+		BatchSize:     appCfg.Processor.DefaultBatchSize,
+		FlushInterval: appCfg.Processor.DefaultFlushInterval,
+	}
+
+	procs := &Processors{
+		StatItemUpdated:     processor.NewProcessor(processorCfg, plugins.StatItemUpdated, dedups.StatItemUpdated, logger),
+		OauthTokenGenerated: processor.NewProcessor(processorCfg, plugins.OauthTokenGenerated, dedups.OauthTokenGenerated, logger),
+	}
+
+	procs.StatItemUpdated.Start()
+	procs.OauthTokenGenerated.Start()
+
+	logger.Info("async processors started",
+		"workers", processorCfg.Workers,
+		"channel_buffer", processorCfg.ChannelBuffer,
+		"batch_size", processorCfg.BatchSize,
+		"flush_interval", processorCfg.FlushInterval)
+
+	return procs
+}
+
+// ShutdownProcessors gracefully shuts down all processors
+func ShutdownProcessors(procs *Processors, timeout time.Duration, logger *slog.Logger) {
+	if err := procs.StatItemUpdated.Shutdown(timeout); err != nil {
+		logger.Error("stat_item_updated processor shutdown error", "error", err)
+	}
+	if err := procs.OauthTokenGenerated.Shutdown(timeout); err != nil {
+		logger.Error("oauth_token_generated processor shutdown error", "error", err)
+	}
+}
