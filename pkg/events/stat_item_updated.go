@@ -43,7 +43,7 @@ func (e *StatItemUpdatedEvent) DeduplicationKey() string {
 		statCode = e.Payload.StatCode
 		latestValue = e.Payload.LatestValue
 	}
-	return fmt.Sprintf("stat_item_updated:%s:%s:%s:%s:%s", e.Namespace, e.UserID, eventTimestamp, latestValue, statCode)
+	return fmt.Sprintf("stat_item_updated:%s:%s:%s:%v:%s", e.Namespace, e.UserID, eventTimestamp, latestValue, statCode)
 }
 
 // ToDocument returns the event as a flat map suitable for JSON/BSON serialization.

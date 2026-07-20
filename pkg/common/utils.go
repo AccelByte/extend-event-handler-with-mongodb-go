@@ -5,7 +5,6 @@
 package common
 
 import (
-	"fmt"
 	"math/rand"
 	"os"
 	"strconv"
@@ -44,8 +43,8 @@ func MakeTraceID(identifiers ...string) string {
 	strInt := strconv.Itoa(GenerateRandomInt())
 	var tID string
 	for _, i := range identifiers {
-		tID = fmt.Sprintf(tID + i + "_")
+		tID += i + "_"
 	}
 
-	return fmt.Sprintf(tID + strInt)
+	return tID + strInt
 }

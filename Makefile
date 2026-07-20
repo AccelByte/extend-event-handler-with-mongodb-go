@@ -7,6 +7,7 @@ SHELL := /bin/bash
 IMAGE_NAME := extend-event-handler-with-mongodb-go
 IMAGE_TAG ?= latest
 PROTOC_IMAGE := proto-builder
+TESTER_IMAGE := $(IMAGE_NAME)-tester
 
 .PHONY: build proto_image proto test clean
 
@@ -27,11 +28,11 @@ proto: proto_image
 		$(PROTOC_IMAGE) \
 			proto.sh
 
-# Run unit tests
+# Run unit tests inside Docker (CI nodes have no Go toolchain installed)
 test:
-	go test -v -cover ./...
+	docker build --target tester -t $(TESTER_IMAGE) .
 
 # Clean generated files and Docker images
 clean:
 	rm -rf pkg/pb/*
-	docker rmi -f $(IMAGE_NAME):$(IMAGE_TAG) $(PROTOC_IMAGE) 2>/dev/null || true
+	docker rmi -f $(IMAGE_NAME):$(IMAGE_TAG) $(PROTOC_IMAGE) $(TESTER_IMAGE) 2>/dev/null || true

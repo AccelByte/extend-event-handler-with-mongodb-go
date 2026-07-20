@@ -68,7 +68,18 @@ RUN go build -v -modcacherw -o /output/extend-event-handler-with-mongodb-go .
 
 
 # ----------------------------------------
-# Stage 3: Runtime Container
+# Stage 3: Test Runner
+# ----------------------------------------
+# Jenkins agents running `make test` have no Go toolchain installed, so tests
+# run inside this image instead. `RUN` fails the build (and `make test`) on
+# any test failure.
+FROM builder AS tester
+
+RUN go test -v -cover ./...
+
+
+# ----------------------------------------
+# Stage 4: Runtime Container
 # ----------------------------------------
 FROM alpine:3.22
 
