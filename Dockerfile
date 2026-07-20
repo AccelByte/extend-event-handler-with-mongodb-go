@@ -16,9 +16,14 @@ RUN apk add --no-cache \
     protobuf \
     protobuf-dev
 
+# Pin protoc Go plugin versions: protoc-gen-go-grpc v1.6.2+ requires Go >= 1.25,
+# but this stage is on golang:1.24, which sets GOTOOLCHAIN=local (no auto-download).
+ARG PROTOC_GEN_GO_VERSION=v1.36.11
+ARG PROTOC_GEN_GO_GRPC_VERSION=v1.6.1
+
 # Install protoc Go tools and plugins
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest \
-    && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@${PROTOC_GEN_GO_VERSION} \
+    && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@${PROTOC_GEN_GO_GRPC_VERSION}
 
 # Set working directory
 WORKDIR /build
@@ -59,7 +64,7 @@ COPY . .
 COPY --from=proto-builder /build/pkg/pb pkg/pb
 
 # Build the Go application binary for the target OS and architecture
-RUN go build -v -modcacherw -o /output/extend-mongo-go .
+RUN go build -v -modcacherw -o /output/extend-event-handler-with-mongodb-go .
 
 
 # ----------------------------------------
@@ -77,7 +82,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy build
-COPY --from=builder /output/extend-mongo-go /app/main
+COPY --from=builder /output/extend-event-handler-with-mongodb-go /app/main
 
 # Plugin Arch gRPC Server Port.
 EXPOSE 6565
