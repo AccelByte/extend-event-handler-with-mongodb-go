@@ -78,7 +78,6 @@ WORKDIR /app
 
 # Copy build
 COPY --from=builder /output/extend-mongo-go /app/main
-COPY --from=builder /build/config/pipeline.yaml /app/config/pipeline.yaml
 
 # Plugin Arch gRPC Server Port.
 EXPOSE 6565
