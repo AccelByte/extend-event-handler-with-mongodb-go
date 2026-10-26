@@ -5,7 +5,7 @@
 # ----------------------------------------
 # Stage 1: Protoc Code Generation
 # ----------------------------------------
-FROM golang:1.24-alpine AS proto-builder
+FROM golang:1.26-alpine AS proto-builder
 
 # Install build dependencies and protoc
 RUN apk add --no-cache \
@@ -41,7 +41,7 @@ RUN chmod +x proto.sh && \
 # ----------------------------------------
 # Stage 2: gRPC Server Builder
 # ----------------------------------------
-FROM golang:1.24-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 ARG TARGETOS=linux
 ARG TARGETARCH=amd64
